@@ -35,6 +35,14 @@ class AmountsTest {
     }
 
     @Test
+    void wholeRupeeAmountIsNotConfusedWithTheBalance() {
+        assertEquals(new BigDecimal("5.00"),
+                Amounts.first("Rs.5 debited from a/c **4821 on 04-07-26 at 07:19 "
+                        + "to UPI/WATER CAN. Avl Bal: Rs.92,213.10. Not you? Call 18002586161"));
+    }
+
+
+    @Test
     void readsTheStatedBalance() {
         assertEquals(new BigDecimal("89032.61"),
                 Amounts.statedBalance("Rs.2,499.50 debited from a/c **4821 on "
