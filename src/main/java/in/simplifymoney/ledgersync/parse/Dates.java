@@ -24,6 +24,10 @@ public final class Dates {
             DateTimeFormatter.ofPattern("dd MMM yy HH:mm", Locale.ENGLISH),
             DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm", Locale.ENGLISH));
 
+    /** The RFC-style timestamp a bank alert email carries in its "Date:" header. */
+    private static final DateTimeFormatter EMAIL_HEADER =
+            DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
     /** Parse a local date-time written by a bank, as IST. */
     public static OffsetDateTime ist(String dateAndTime) {
         for (DateTimeFormatter f : SMS_FORMATS) {
@@ -34,5 +38,18 @@ public final class Dates {
             }
         }
         return null;
+    }
+
+    /**
+     * Parse the "Date:" header of a bank email, keeping the offset it carries
+     * (e.g. "Wed, 01 Jul 2026 09:02:00 +0530"). This is when the transaction
+     * happened, which is what the matching SMS also reports.
+     */
+    public static OffsetDateTime emailHeader(String dateHeader) {
+        try {
+            return OffsetDateTime.parse(dateHeader.trim(), EMAIL_HEADER);
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
     }
 }
