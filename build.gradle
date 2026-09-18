@@ -18,6 +18,9 @@ dependencies {
     // runtime dependency only. Add whatever you need for your document store.
     runtimeOnly 'com.h2database:h2:2.2.224'
 
+    // Document store the ledger is moving to (Task 4).
+    implementation 'org.mongodb:mongodb-driver-sync:5.2.1'
+
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -33,5 +36,13 @@ test { useJUnitPlatform() }
 tasks.register('selfCheck', JavaExec) {
     group = 'verification'
     mainClass = 'in.simplifymoney.ledgersync.SelfCheck'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+// Document-store CLI (Task 4): backfill | check | bench | query | msg.
+// Needs `docker compose up` for MongoDB.
+tasks.register('docstore', JavaExec) {
+    group = 'application'
+    mainClass = 'in.simplifymoney.ledgersync.docstore.DocStoreApp'
     classpath = sourceSets.main.runtimeClasspath
 }

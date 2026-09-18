@@ -1,0 +1,20 @@
+# Brings up the document store the ledger is moving to.
+#   docker compose up -d
+services:
+  mongo:
+    image: mongo:7
+    container_name: ledger-mongo
+    # Host port 27018 (not 27017) to avoid clashing with any MongoDB already
+    # running locally. The app connects to localhost:27018.
+    ports:
+      - "27018:27017"
+    volumes:
+      - ledger-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ledger-mongo-data:

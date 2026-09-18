@@ -33,4 +33,21 @@ public interface DocumentStore {
     Optional<NormalizedTxn> byMessageId(String messageId);
 
     void save(NormalizedTxn txn);
+
+    /**
+     * Every transaction in the store. Not a service access pattern - an admin
+     * operation for the ConsistencyChecker and backfill verification.
+     */
+    List<NormalizedTxn> all();
+
+    /**
+     * The identity of a real transaction, independent of which messages reported
+     * it: account, direction, amount and the instant it occurred. This is the
+     * document key, so saving the same transaction twice is idempotent, and it
+     * is what Backfill and the ConsistencyChecker dedupe on.
+     */
+    static String identity(NormalizedTxn t) {
+        return t.accountLast4() + "|" + t.direction().name() + "|"
+                + t.amount().toPlainString() + "|" + t.occurredAt().toInstant();
+    }
 }
