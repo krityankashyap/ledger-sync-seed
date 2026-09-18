@@ -53,10 +53,14 @@ public final class IngestService {
             groups.computeIfAbsent(TxnKey.of(t), k -> new ArrayList<>()).add(t);
         }
     
+        List<NormalizedTxn> merged = new ArrayList<>();
         for (List<ParsedTxn> group : groups.values()) {
-            store.save(merge(group));
+            merged.add(merge(group));
         }
-        return new Stats(messages.size(), groups.size(), skipped);
+        for (NormalizedTxn t : Categories.categorize(merged)) {
+            store.save(t);
+        }
+        return new Stats(messages.size(), merged.size(), skipped);
     }
 
     public static List<RawMessage> readCorpus(Path corpus) throws IOException {
