@@ -3,6 +3,7 @@ package in.simplifymoney.ledgersync;
 import in.simplifymoney.ledgersync.ingest.IngestService;
 import in.simplifymoney.ledgersync.json.Json;
 import in.simplifymoney.ledgersync.parse.Parsers;
+import in.simplifymoney.ledgersync.report.Reconciliation;
 import in.simplifymoney.ledgersync.report.Reports;
 import in.simplifymoney.ledgersync.store.SqlLedgerStore;
 import java.nio.file.Files;
@@ -48,14 +49,24 @@ public final class App {
                 if (args.length < 2) throw new IllegalArgumentException("report needs a directory");
                 Path out = Path.of(args[1]);
                 Files.createDirectories(out);
+                // Reconciliation needs the raw stated balances, which the ledger
+                // does not carry, so it re-reads the corpus.
+                Path corpus = Path.of(args.length > 2 ? args[2] : "fixtures/corpus-a.jsonl");
                 try (SqlLedgerStore store = new SqlLedgerStore(DB)) {
-                    var ledger = store.all();
+                    // Report on corpus-a only. The V2 seed rows (m-legacy-*) are
+                    // pre-corpus production data, already baked into the opening
+                    // balance and handled by the Backfill path - not part of this
+                    // deliverable.
+                    var ledger = store.all().stream()
+                            .filter(t -> !t.sourceMessageIds().stream()
+                                    .allMatch(id -> id.startsWith("m-legacy")))
+                            .toList();
                     Files.writeString(out.resolve("ledger.json"),
                             Json.writePretty(Reports.ledgerDocument(ledger)));
                     Files.writeString(out.resolve("summary.json"),
                             Json.writePretty(Reports.summary(ledger)));
                     Files.writeString(out.resolve("reconciliation.json"),
-                            Json.writePretty(Reports.reconciliation(ledger)));
+                            Json.writePretty(Reconciliation.check(corpus)));
                     System.out.println("wrote 3 files to " + out);
                 }
             }
