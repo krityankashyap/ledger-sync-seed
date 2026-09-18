@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.time.Instant;
 
 /**
  * Reads a corpus of raw messages and puts transactions in the ledger.
@@ -94,9 +95,9 @@ public final class IngestService {
 
        /** Identifies one real transaction, independent of which message reported it. */
        private record TxnKey(String accountLast4, Direction direction,
-        BigDecimal amount, OffsetDateTime occurredAt) {
+        BigDecimal amount, Instant occurredAt) {
 static TxnKey of(ParsedTxn p) {
-return new TxnKey(p.accountLast4(), p.direction(), p.amount(), p.occurredAt());
+return new TxnKey(p.accountLast4(), p.direction(), p.amount(), p.occurredAt().toInstant());
 }
 }
 
